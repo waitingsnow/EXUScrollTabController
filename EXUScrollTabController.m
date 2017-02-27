@@ -15,7 +15,7 @@ static NSString * const ID = @"CONTENTCELL";
 #define EXUScreenW ([[UIScreen mainScreen] bounds].size.width)
 #define EXUScreenH ([[UIScreen mainScreen] bounds].size.height)
 
-@interface EXUScrollTabController ()<UICollectionViewDataSource, UICollectionViewDelegate>
+@interface EXUScrollTabController ()<UICollectionViewDataSource, UICollectionViewDelegate, UINavigationControllerDelegate>
 
 /** 内容滚动视图 */
 @property (nonatomic, weak) UICollectionView *contentScrollView;
@@ -35,19 +35,26 @@ static NSString * const ID = @"CONTENTCELL";
 	if (self = [super init]) {
 		[viewControllers enumerateObjectsUsingBlock:^(UIViewController * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
 			[self addChildViewController:obj];
+			if ([obj isKindOfClass:[UINavigationController class]]) {
+				UINavigationController *naviObj = (UINavigationController *)obj;
+				if (!naviObj.delegate) {
+					naviObj.delegate = self;
+				}
+			}
 		}];
 	}
 	return self;
 }
 
 #pragma mark - 控制器view生命周期方法
+- (void)loadView {
+	self.view = self.contentScrollView;
+}
+
 - (void)viewDidLoad {
 	[super viewDidLoad];
 	self.automaticallyAdjustsScrollViewInsets = NO;
-	self.view.backgroundColor = [UIColor whiteColor];
-	
-	[self.view addSubview:self.contentScrollView];
-	self.contentScrollView.frame = self.view.bounds;
+	self.contentScrollView.frame = CGRectMake(0, 0, EXUScreenW, EXUScreenH);
 	self.contentScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	
 	[self.contentScrollView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionLeft animated:NO];
@@ -151,112 +158,8 @@ static NSString * const ID = @"CONTENTCELL";
 	}
 }
 
-@end
-
-typedef enum : NSUInteger {
-	EXUViewStateUnload,
-	EXUViewStateLoaded,
-	EXUViewStateWillAppear,
-	EXUViewStateDidAppear,
-	EXUViewStateWillDisappear,
-	EXUViewStateDidDisappear,
-} EXUViewState;
-
-
-@interface UIViewController (EXULifeCycle)
-
-@property (nonatomic, assign) EXUViewState exu_viewState;
-
-@end
-
-@implementation UIViewController (EXULifeCycle)
-
-+ (void)exchangeInstanceMethod1:(SEL)method1 method2:(SEL)method2
-{
-	method_exchangeImplementations(class_getInstanceMethod(self, method1), class_getInstanceMethod(self, method2));
-}
-
-+ (void)load {
-	[self exchangeInstanceMethod1:@selector(viewDidLoad) method2:@selector(exu_viewDidLoad)];
-	[self exchangeInstanceMethod1:@selector(viewWillAppear:) method2:@selector(exu_viewWillAppear:)];
-	[self exchangeInstanceMethod1:@selector(viewDidAppear:) method2:@selector(exu_viewDidAppear:)];
-	[self exchangeInstanceMethod1:@selector(viewWillDisappear:) method2:@selector(exu_viewWillDisappear:)];
-	[self exchangeInstanceMethod1:@selector(viewDidDisappear:) method2:@selector(exu_viewDidDisappear:)];
-	
-}
-
-- (void)exu_viewDidLoad {
-	[self exu_viewDidLoad];
-	self.exu_viewState = EXUViewStateLoaded;
-}
-- (void)exu_viewWillAppear:(BOOL)animated {
-	[self exu_viewWillAppear:animated];
-	self.exu_viewState = EXUViewStateWillAppear;
-}
-- (void)exu_viewDidAppear:(BOOL)animated {
-	[self exu_viewDidAppear:animated];
-	self.exu_viewState = EXUViewStateDidAppear;
-}
-- (void)exu_viewWillDisappear:(BOOL)animated {
-	[self exu_viewWillDisappear:animated];
-	self.exu_viewState = EXUViewStateWillDisappear;
-}
-- (void)exu_viewDidDisappear:(BOOL)animated {
-	[self exu_viewDidDisappear:animated];
-	self.exu_viewState = EXUViewStateDidDisappear;
-}
-
-- (void)setExu_viewState:(EXUViewState)exu_viewState {
-	objc_setAssociatedObject(self, @selector(exu_viewState), @(exu_viewState), OBJC_ASSOCIATION_ASSIGN);
-}
-
-- (EXUViewState)exu_viewState {
-	return [objc_getAssociatedObject(self, _cmd) unsignedIntegerValue];
-}
-
-@end
-
-@implementation UIViewController (EXUScrollTabController)
-
-- (EXUScrollTabController *)scrollTabController {
-	UIResponder *scrollTabController = self.nextResponder;
-	while (scrollTabController) {
-		if ([scrollTabController isKindOfClass:[EXUScrollTabController class]]) {
-			return (EXUScrollTabController *)scrollTabController;
-		}
-		scrollTabController = scrollTabController.nextResponder;
-	}
-	return nil;
-}
-
-@end
-
-@interface UINavigationController (EXUScrollEnableSwitch)
-
-
-@end
-
-@implementation UINavigationController (EXUScrollEnableSwitch)
-
-+ (void)load {
-	[self exchangeInstanceMethod1:@selector(pushViewController:animated:) method2:@selector(exu_pushViewController:animated:)];
-	[self exchangeInstanceMethod1:@selector(popViewControllerAnimated:) method2:@selector(exu_popViewControllerAnimated:)];
-}
-
-
-- (void)exu_pushViewController:(UIViewController *)viewController animated:(BOOL)animated {
-	[self exu_pushViewController:viewController animated:animated];
-	if (self.parentViewController == self.scrollTabController) {
-		self.scrollTabController.contentScrollView.scrollEnabled = NO;
-	}
-}
-
-- (UIViewController *)exu_popViewControllerAnimated:(BOOL)animated {
-	UIViewController *popedVC = [self exu_popViewControllerAnimated:animated];
-	if (self.parentViewController == self.scrollTabController && self.childViewControllers.count == 1) {
-		self.scrollTabController.contentScrollView.scrollEnabled = YES;
-	}
-	return popedVC;
+- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated {
+	self.contentScrollView.scrollEnabled = [navigationController.viewControllers firstObject] == viewController;
 }
 
 @end
