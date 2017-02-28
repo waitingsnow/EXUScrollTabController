@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "EXUScrollTabController"
-  s.version      = "0.1"
+  s.version      = "0.11"
   s.summary      = "A ViewController Containter that can exchange it's viewControllers by scroll"
 
   # This description is used to generate tags and improve search results.
