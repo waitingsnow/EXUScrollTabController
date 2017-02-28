@@ -95,9 +95,17 @@ static NSString * const ID = @"CONTENTCELL";
 		_currentIndex = currentIndex;
 		if (self.viewLoaded) {
 			// 内容滚动视图滚动到对应位置
-			[self.contentScrollView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:currentIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionLeft animated:YES];
+			[self scrollToIndex:currentIndex animated:YES];
 		}
 	}
+}
+
+- (void)setScrollEnabled:(BOOL)scrollEnabled {
+	self.contentScrollView.scrollEnabled = scrollEnabled;
+}
+
+- (void)scrollToIndex:(NSInteger)targetIndex animated:(BOOL)animated {
+	[self.contentScrollView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionLeft animated:animated];
 }
 
 #pragma mark - 刷新界面方法
@@ -159,7 +167,7 @@ static NSString * const ID = @"CONTENTCELL";
 }
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated {
-	self.contentScrollView.scrollEnabled = [navigationController.viewControllers firstObject] == viewController;
+	self.scrollEnabled = [navigationController.viewControllers firstObject] == viewController;
 }
 
 @end

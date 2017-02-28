@@ -20,6 +20,12 @@
  当前选中控制器的位置
  */
 @property (nonatomic, assign) NSInteger currentIndex;
+- (void)scrollToIndex:(NSInteger)targetIndex animated:(BOOL)animated;
+
+/**
+ 设置控制器是否可滑动
+ */
+@property (nonatomic, assign) BOOL scrollEnabled;
 
 /**
  根据传入的控制器数组初始化
