@@ -34,3 +34,8 @@
 
 @end
 
+@interface UIViewController (EXUScrollTabController)
+
+- (EXUScrollTabController *)scrollTabController;
+
+@end

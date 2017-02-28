@@ -56,7 +56,7 @@ static NSString * const ID = @"CONTENTCELL";
 	self.automaticallyAdjustsScrollViewInsets = NO;
 	self.contentScrollView.frame = CGRectMake(0, 0, EXUScreenW, EXUScreenH);
 	self.contentScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-	
+
 	[self.contentScrollView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionLeft animated:NO];
 	self.currentController = self.childViewControllers[self.currentIndex];
 }
@@ -71,7 +71,7 @@ static NSString * const ID = @"CONTENTCELL";
 		layout.minimumLineSpacing = 0;
 		layout.itemSize = CGSizeMake(EXUScreenW, EXUScreenH);
 		layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-		
+
 		UICollectionView *contentScrollView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
 		contentScrollView.backgroundColor = [UIColor whiteColor];
 		// 设置内容滚动视图
@@ -82,7 +82,7 @@ static NSString * const ID = @"CONTENTCELL";
 		contentScrollView.dataSource = self;
 		// 注册cell
 		[contentScrollView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:ID];
-		
+
 		_contentScrollView = contentScrollView;
 	}
 	return _contentScrollView;
@@ -90,7 +90,7 @@ static NSString * const ID = @"CONTENTCELL";
 
 #pragma mark - 设置当前选中的控制器
 - (void)setCurrentIndex:(NSInteger)currentIndex {
-	
+
 	if (_currentIndex != currentIndex) {
 		_currentIndex = currentIndex;
 		if (self.viewLoaded) {
@@ -113,8 +113,8 @@ static NSString * const ID = @"CONTENTCELL";
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
 	UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:ID forIndexPath:indexPath];
-	
-	
+
+
 	return cell;
 }
 
@@ -124,13 +124,13 @@ static NSString * const ID = @"CONTENTCELL";
 	[cell.contentView addSubview:vc.view];
 	vc.view.frame = cell.contentView.bounds;
 	vc.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-	
+
 	self.tempController = vc;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
 	UIViewController *vc = self.childViewControllers[indexPath.item];
-	
+
 	[vc.view removeFromSuperview];
 	[vc endAppearanceTransition];
 	self.tempController = nil;
@@ -152,7 +152,7 @@ static NSString * const ID = @"CONTENTCELL";
 	if (targetVC == self.currentController) {
 		[_currentController endAppearanceTransition];
 		[_currentController beginAppearanceTransition:YES animated:NO];
-		
+
 		[_tempController endAppearanceTransition];
 		[_tempController beginAppearanceTransition:NO animated:NO];
 	}
@@ -164,3 +164,17 @@ static NSString * const ID = @"CONTENTCELL";
 
 @end
 
+@implementation UIViewController (EXUScrollTabController)
+
+- (EXUScrollTabController *)scrollTabController {
+	UIResponder *scrollTabController = self.nextResponder;
+	while (scrollTabController) {
+		if ([scrollTabController isKindOfClass:[EXUScrollTabController class]]) {
+			return (EXUScrollTabController *)scrollTabController;
+		}
+		scrollTabController = scrollTabController.nextResponder;
+	}
+	return nil;
+}
+
+@end
